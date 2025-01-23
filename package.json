@@ -1,24 +1,69 @@
 {
   "name": "hex-to-color-converter",
-  "displayName": "hex-to-color-converter",
+  "displayName": "Hex to Color Converter",
   "description": "A VSCode extension to convert HEX colors to various formats (RGB, HSL, etc.).",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "engines": {
     "vscode": "^1.96.0"
   },
   "categories": [
     "Other"
   ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Recon1991/hex-to-color-converter-VSCODE"
+  },
   "activationEvents": [],
   "main": "./out/extension.js",
   "contributes": {
+    "configuration": {
+        "type": "object",
+        "title": "Hex to Color Converter Settings",
+        "properties": {
+            "hexToColorConverter.enabledFormats": {
+                "type": "array",
+                "items": {
+                    "type": "string",
+                    "enum": ["RGB", "RGBA", "HSL", "HSB", "CMYK", "HEX8", "HWB"],
+                    "default": ["RGB", "RGBA", "HSL"]
+                },
+                "default": ["RGB", "RGBA", "HSL"],
+                "description": "Select the color formats to show in the right-click menu."
+            }
+        }
+    },
     "commands": [
-      {
-        "command": "hex-to-color-converter.helloWorld",
-        "title": "Hello World"
-      }
+        {
+            "command": "extension.convertHexToRGB",
+            "title": "Convert Hex to RGB"
+        },
+        {
+            "command": "extension.convertHexToRGBA",
+            "title": "Convert Hex to RGBA"
+        },
+        {
+            "command": "extension.convertHexToHSL",
+            "title": "Convert Hex to HSL"
+        },
+        {
+            "command": "extension.convertHexToHSB",
+            "title": "Convert Hex to HSB"
+        },
+        {
+            "command": "extension.convertHexToCMYK",
+            "title": "Convert Hex to CMYK"
+        },
+        {
+            "command": "extension.convertHexToHEX8",
+            "title": "Convert Hex to HEX8"
+        },
+        {
+            "command": "extension.convertHexToHWB",
+            "title": "Convert Hex to HWB"
+        }
     ]
   },
+
   "scripts": {
     "vscode:prepublish": "npm run compile",
     "compile": "tsc -p ./",
