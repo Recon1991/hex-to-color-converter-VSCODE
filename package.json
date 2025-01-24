@@ -2,7 +2,7 @@
   "name": "hex-to-color-converter",
   "displayName": "Hex to Color Converter",
   "description": "A VSCode extension to convert HEX colors to various formats (RGB, HSL, etc.).",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "engines": {
     "vscode": "^1.96.0"
   },
@@ -19,26 +19,26 @@
   "main": "./out/extension.js",
   "contributes": {
     "configuration": {
-        "type": "object",
-        "title": "Hex to Color Converter Settings",
-        "properties": {
-            "hexToColorConverter.enabledFormats": {
-                "type": "array",
-                "items": {
-                    "type": "string",
-                    "enum": ["RGB", "RGBA", "HSL", "HSB", "CMYK", "HEX8", "HWB"],
-                    "default": ["RGB", "RGBA", "HSL"]
-                },
-                "default": ["RGB", "RGBA", "HSL"],
-                "description": "Select the color formats to show in the right-click menu."
+    "type": "object",
+    "title": "Hex to Color Converter Settings",
+    "properties": {
+        "hexToColorConverter.enabledFormats": {
+            "type": "array",
+            "items": {
+                "type": "string",
+                "enum": ["RGB", "RGBA", "HSL", "HSB", "CMYK", "HEX8", "HWB"]
             },
-            "hexToColorConverter.showConfirmPrompt": {
-                "type": "boolean",
-                "default": true,
-                "description": "Enable or disable the confirm prompt when converting hex colors."
-            }
+            "default": ["RGB", "RGBA", "HSL"],
+            "description": "Select the color formats to show in the right-click menu."
+        },
+        "hexToColorConverter.showConfirmPrompt": {
+            "type": "boolean",
+            "default": false,
+            "description": "Enable or disable the confirm prompt when converting hex colors."
         }
-    },
+    }
+},
+
     "commands": [
         {
             "command": "extension.convertHexToRGB",
