@@ -31,6 +31,11 @@
                 },
                 "default": ["RGB", "RGBA", "HSL"],
                 "description": "Select the color formats to show in the right-click menu."
+            },
+            "hexToColorConverter.showConfirmPrompt": {
+                "type": "boolean",
+                "default": true,
+                "description": "Enable or disable the confirm prompt when converting hex colors."
             }
         }
     },

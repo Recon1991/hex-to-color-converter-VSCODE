@@ -151,101 +151,88 @@ function hexToHwb(hex: string): string | null {
 export function activate(context: vscode.ExtensionContext) {
     const configuration = vscode.workspace.getConfiguration('hexToColorConverter');
     const enabledFormats: string[] = configuration.get('enabledFormats', []);
+    const showConfirmPrompt: boolean = configuration.get('showConfirmPrompt', true);
 
     enabledFormats.forEach((format) => {
         const commandId = `extension.convertHexTo${format}`;
 
-        const disposable = vscode.commands.registerCommand(commandId, () => {
+        const disposable = vscode.commands.registerCommand(commandId, async () => {
             const editor = vscode.window.activeTextEditor;
-            if (editor) {
-                const document = editor.document;
-                const position = editor.selection.active;
-                const wordRange = document.getWordRangeAtPosition(position, /#?[0-9A-Fa-f]{3,8}/);
+            if (!editor) {
+                vscode.window.showErrorMessage('No active text editor.');
+                return;
+            }
 
-                if (wordRange) {
-                    const hex = document.getText(wordRange).trim();
-                    if (/^#?[0-9A-Fa-f]{6}$/.test(hex)) {
-                        let converted: string | null = null;
+            const document = editor.document;
+            const position = editor.selection.active;
+            const wordRange = document.getWordRangeAtPosition(position, /#?[0-9A-Fa-f]{3,8}/);
 
-                        switch (format) {
-                            case 'RGB':
-                                converted = hexToRgb(hex);
-                                break;
-                            case 'RGBA':
-                                vscode.window
-                                    .showInputBox({ prompt: 'Enter alpha value (0-1) or leave blank for 1' })
-                                    .then((alpha) => {
-                                        converted = hexToRgb(hex, alpha ? parseFloat(alpha) : 1);
-                                        if (converted !== null) {
-                                            showPromptToReplace(editor, wordRange, hex, converted);
-                                        } else {
-                                            vscode.window.showErrorMessage('Conversion failed.');
-                                        }
-                                    });
-                                return;
-                            case 'HSL':
-                                converted = hexToHsl(hex);
-                                break;
-                            case 'CMYK':
-                                converted = hexToCmyk(hex);
-                                break;
-                            case 'HEX8':
-                                vscode.window
-                                    .showInputBox({ prompt: 'Enter alpha value (0-1)' })
-                                    .then((alpha) => {
-                                        converted = hexToHex8(hex, alpha ? parseFloat(alpha) : 1);
-                                        if (converted !== null) {
-                                            showPromptToReplace(editor, wordRange, hex, converted);
-                                        } else {
-                                            vscode.window.showErrorMessage('Conversion failed.');
-                                        }
-                                    });
-                                return;
-                            case 'HSB':
-                                converted = hexToHsb(hex);
-                                break;
-                            case 'HWB':
-                                converted = hexToHwb(hex);
-                                break;
-                        }
+            if (!wordRange) {
+                vscode.window.showErrorMessage('No hex code found at cursor.');
+                return;
+            }
 
-                        if (converted !== null) {
-                            showPromptToReplace(editor, wordRange, hex, converted);
-                        } else {
-                            vscode.window.showErrorMessage('Conversion failed.');
-                        }
-                    } else {
-                        vscode.window.showErrorMessage('Not a valid hex color code.');
-                    }
-                } else {
-                    vscode.window.showErrorMessage('No hex color code found at the cursor.');
+            const hex = document.getText(wordRange).trim();
+            if (!/^#?[0-9A-Fa-f]{6}$/.test(hex)) {
+                vscode.window.showErrorMessage('Invalid hex code.');
+                return;
+            }
+
+            let converted: string | null = null;
+
+            switch (format) {
+                case 'RGB':
+                    converted = hexToRgb(hex);
+                    break;
+                case 'RGBA':
+                    const alphaInput = await vscode.window.showInputBox({
+                        prompt: 'Enter alpha value (0-1) or leave blank for 1',
+                    });
+                    converted = hexToRgb(hex, alphaInput ? parseFloat(alphaInput) : 1);
+                    break;
+                case 'HSL':
+                    converted = hexToHsl(hex);
+                    break;
+                case 'HSB':
+                    converted = hexToHsb(hex);
+                    break;
+                case 'HWB':
+                    converted = hexToHwb(hex);
+                    break;
+                case 'CMYK':
+                    converted = hexToCmyk(hex);
+                    break;
+                case 'HEX8':
+                    const alphaHexInput = await vscode.window.showInputBox({
+                        prompt: 'Enter alpha value (0-1) or leave blank for 1',
+                    });
+                    converted = hexToHex8(hex, alphaHexInput ? parseFloat(alphaHexInput) : 1);
+                    break;
+            }
+
+            if (!converted) {
+                vscode.window.showErrorMessage('Conversion failed.');
+                return;
+            }
+
+            if (showConfirmPrompt) {
+                const confirm = await vscode.window.showInformationMessage(
+                    `Replace "${hex}" with "${converted}"?`,
+                    { modal: true },
+                    'Yes'
+                );
+                if (confirm !== 'Yes') {
+                    return;
                 }
             }
+
+            editor.edit((editBuilder) => {
+                editBuilder.replace(wordRange, converted!);
+            });
         });
 
         context.subscriptions.push(disposable);
     });
-}
-
-function showPromptToReplace(
-    editor: vscode.TextEditor,
-    wordRange: vscode.Range,
-    original: string,
-    converted: string
-) {
-    vscode.window
-        .showInformationMessage(
-            `Converted: ${converted}. Replace the original value?`,
-            'Yes',
-            'No'
-        )
-        .then((choice) => {
-            if (choice === 'Yes') {
-                editor.edit((editBuilder) => {
-                    editBuilder.replace(wordRange, converted);
-                });
-            }
-        });
 }
 
 // Deactivate Function
